@@ -30,22 +30,37 @@ var runListProgram = func(model listModel) error {
 
 func NewListCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "list",
-		Aliases: []string{"ls"},
-		Short:   "List activities (Calendar View)",
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runListCmd(cmd)
+		Use:       "list [period]",
+		Aliases:   []string{"ls"},
+		Short:     "List activities: daily calendar view, or a weekly/monthly/yearly summary",
+		ValidArgs: []string{"daily", "weekly", "monthly", "yearly"},
+		Args:      cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runListCmd(cmd, args)
 		},
 	}
 	return cmd
 }
 
-func runListCmd(cmd *cobra.Command) error {
+func runListCmd(cmd *cobra.Command, args []string) error {
+	arg := ""
+	if len(args) > 0 {
+		arg = args[0]
+	}
+
+	period, ok := parseListPeriod(arg)
+	if !ok {
+		return errors.New(text(cmd, "list.error.invalid_period", arg))
+	}
+
 	rt := getRuntime(cmd)
-	service := rt.ActivityService
-	tf := rt.TimeFormatter
-	model := initialListModel(service, tf, getLocalizer(cmd))
-	return runListProgram(model)
+	if period == periodDaily {
+		model := initialListModel(rt.ActivityService, rt.TimeFormatter, getLocalizer(cmd))
+		return runListProgram(model)
+	}
+
+	model := initialListPeriodModel(rt.ActivityService, rt.Config, getLocalizer(cmd), period)
+	return runListPeriodProgram(model)
 }
 
 type listModel struct {
