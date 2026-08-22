@@ -29,16 +29,24 @@ const (
 	periodYearly
 )
 
+// CLI argument spellings for each period, shared with NewListCmd's ValidArgs.
+const (
+	periodArgDaily   = "daily"
+	periodArgWeekly  = "weekly"
+	periodArgMonthly = "monthly"
+	periodArgYearly  = "yearly"
+)
+
 // parseListPeriod maps the optional CLI argument to a period; an empty argument defaults to daily.
 func parseListPeriod(arg string) (listPeriod, bool) {
 	switch strings.ToLower(strings.TrimSpace(arg)) {
-	case "", "daily", "day", "d":
+	case "", periodArgDaily, "day", "d":
 		return periodDaily, true
-	case "weekly", "week", "w":
+	case periodArgWeekly, "week", "w":
 		return periodWeekly, true
-	case "monthly", "month", "m":
+	case periodArgMonthly, "month", "m":
 		return periodMonthly, true
-	case "yearly", "year", "y":
+	case periodArgYearly, "year", "y":
 		return periodYearly, true
 	default:
 		return periodDaily, false
@@ -102,15 +110,15 @@ func (m *listPeriodModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "ctrl+c", "esc":
+		case "q", keyCtrlC, "esc":
 			return m, tea.Quit
-		case "left", "h":
+		case keyLeft, "h":
 			m.anchor = shiftPeriod(m.period, m.anchor, -1)
 			m.reload()
-		case "right", "l":
+		case keyRight, "l":
 			m.anchor = shiftPeriod(m.period, m.anchor, 1)
 			m.reload()
-		case "up", "k", "down", "j":
+		case "up", "k", keyDown, "j":
 			m.table, cmd = m.table.Update(msg)
 			return m, cmd
 		}

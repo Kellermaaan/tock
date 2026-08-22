@@ -33,11 +33,9 @@ func NewListCmd() *cobra.Command {
 		Use:       "list [period]",
 		Aliases:   []string{"ls"},
 		Short:     "List activities: daily calendar view, or a weekly/monthly/yearly summary",
-		ValidArgs: []string{"daily", "weekly", "monthly", "yearly"},
+		ValidArgs: []string{periodArgDaily, periodArgWeekly, periodArgMonthly, periodArgYearly},
 		Args:      cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runListCmd(cmd, args)
-		},
+		RunE:      runListCmd,
 	}
 	return cmd
 }
@@ -203,16 +201,16 @@ func (m *listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "ctrl+c":
+		case "q", keyCtrlC:
 			return m, tea.Quit
-		case "left", "h":
+		case keyLeft, "h":
 			m.navigate(-1)
-		case "right", "l":
+		case keyRight, "l":
 			m.navigate(1)
 		case "up", "k":
 			m.table, cmd = m.table.Update(msg)
 			return m, cmd
-		case "down", "j":
+		case keyDown, "j":
 			m.table, cmd = m.table.Update(msg)
 			return m, cmd
 		}

@@ -21,14 +21,14 @@ func TestParseListPeriod(t *testing.T) {
 		wantOK bool
 	}{
 		{"", periodDaily, true},
-		{"daily", periodDaily, true},
+		{periodArgDaily, periodDaily, true},
 		{"d", periodDaily, true},
-		{"weekly", periodWeekly, true},
+		{periodArgWeekly, periodWeekly, true},
 		{"w", periodWeekly, true},
-		{"monthly", periodMonthly, true},
+		{periodArgMonthly, periodMonthly, true},
 		{"Monthly", periodMonthly, true},
 		{"m", periodMonthly, true},
-		{"yearly", periodYearly, true},
+		{periodArgYearly, periodYearly, true},
 		{"y", periodYearly, true},
 		{"nonsense", periodDaily, false},
 	}
@@ -86,7 +86,7 @@ func TestRunListCmdDispatchesMonthlyToPeriodProgram(t *testing.T) {
 	}
 	cmd := newTestCLICommand(service)
 
-	require.NoError(t, runListCmd(cmd, []string{"monthly"}))
+	require.NoError(t, runListCmd(cmd, []string{periodArgMonthly}))
 	assert.True(t, called)
 }
 
@@ -100,7 +100,7 @@ func TestRunListCmdRejectsInvalidPeriod(t *testing.T) {
 func TestPeriodRange(t *testing.T) {
 	anchor := time.Date(2026, time.July, 15, 12, 0, 0, 0, time.Local)
 
-	t.Run("monthly", func(t *testing.T) {
+	t.Run(periodArgMonthly, func(t *testing.T) {
 		start, end := periodRange(periodMonthly, anchor)
 		assert.Equal(t, time.Date(2026, time.July, 1, 0, 0, 0, 0, time.Local), start)
 		assert.Equal(t, time.Date(2026, time.August, 1, 0, 0, 0, 0, time.Local), end)
@@ -113,7 +113,7 @@ func TestPeriodRange(t *testing.T) {
 		assert.Equal(t, time.Date(2026, time.July, 20, 0, 0, 0, 0, time.Local), end)
 	})
 
-	t.Run("yearly", func(t *testing.T) {
+	t.Run(periodArgYearly, func(t *testing.T) {
 		start, end := periodRange(periodYearly, anchor)
 		assert.Equal(t, time.Date(2026, time.January, 1, 0, 0, 0, 0, time.Local), start)
 		assert.Equal(t, time.Date(2027, time.January, 1, 0, 0, 0, 0, time.Local), end)
@@ -184,7 +184,7 @@ func TestListPeriodModelBuildsBucketsAndRows(t *testing.T) {
 	assert.Equal(t, "Mo 06 Jul", rows[0][0])
 	assert.Equal(t, "core", rows[0][1])
 	assert.Equal(t, "3h", rows[0][2])
-	assert.Equal(t, "", rows[1][0]) // continuation row has no date label
+	assert.Empty(t, rows[1][0]) // continuation row has no date label
 	assert.Equal(t, "ops", rows[1][1])
 	assert.Equal(t, "1h", rows[1][2])
 	assert.Equal(t, "4h", rows[2][2]) // subtotal row
